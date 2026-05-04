@@ -1,0 +1,49 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<main class="container flex-grow-1">
+  <h1 class="h4 mb-3">#<%= row.id %></h1>
+  <dl class="row">
+    <dt class="col-sm-3">item</dt><dd class="col-sm-9"><%= row.item_title %></dd>
+    <dt class="col-sm-3">status</dt><dd class="col-sm-9"><%= row.status %></dd>
+    <dt class="col-sm-3">note</dt><dd class="col-sm-9"><%= row.note || '—' %></dd>
+    <dt class="col-sm-3">created</dt><dd class="col-sm-9"><%= new Date(row.created_at).toLocaleString('ru-RU') %></dd>
+  </dl>
+  <% if (row.status === 'pending') { %>
+    <form action="/entries/<%= row.id %>/delete" method="post" class="d-inline" onsubmit="return confirm('delete?');">
+      <button type="submit" class="btn btn-outline-danger btn-sm">delete</button>
+    </form>
+    <a class="btn btn-outline-primary btn-sm" href="/entries/<%= row.id %>/edit">edit</a>
+  <% } %>
+  <a class="btn btn-link btn-sm" href="/entries">list</a>
+
+  <hr class="my-4">
+  <h2 class="h5">rating</h2>
+  <% if (ratingRow) { %>
+    <p class="mb-1"><strong><%= ratingRow.rating %>/5</strong></p>
+    <p class="small text-muted">mod:
+      <% if (ratingRow.moderation_status === 'pending') { %><span class="badge text-bg-warning">pending</span><% } %>
+      <% if (ratingRow.moderation_status === 'published') { %><span class="badge text-bg-success">published</span><% } %>
+      <% if (ratingRow.moderation_status === 'rejected') { %><span class="badge text-bg-danger">rejected</span><% } %>
+    </p>
+    <p><%= ratingRow.body %></p>
+  <% } else if (row.status === 'approved') { %>
+    <% if (errRating) { %><div class="alert alert-danger"><%= errRating %></div><% } %>
+    <form method="post" action="/entries/<%= row.id %>/ratings" class="mt-2" style="max-width: 480px;">
+      <div class="mb-2">
+        <label class="form-label" for="rating">1–5</label>
+        <select class="form-select" id="rating" name="rating" required>
+          <option value="">—</option>
+          <% for (let i = 5; i >= 1; i--) { %><option value="<%= i %>"><%= i %></option><% } %>
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label" for="body">text</label>
+        <textarea class="form-control" id="body" name="body" rows="3" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">send</button>
+    </form>
+  <% } else { %>
+    <p class="text-muted small">После approved можно добавить rating.</p>
+  <% } %>
+</main>
+<%- include('../partials/footer') %>

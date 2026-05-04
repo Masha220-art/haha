@@ -1,0 +1,24 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<main class="container flex-grow-1" style="max-width: 640px;">
+  <h1 class="h4 mb-3"><%= mode === 'edit' ? 'Правка' : 'Новая запись' %></h1>
+  <% if (err) { %><div class="alert alert-danger"><%= err %></div><% } %>
+  <form method="post" action="<%= mode === 'edit' ? '/entries/' + row.id + '/edit' : '/entries/new' %>">
+    <div class="mb-3">
+      <label class="form-label" for="item_id">Позиция</label>
+      <select class="form-select" id="item_id" name="item_id" required>
+        <option value="">—</option>
+        <% itemList.forEach(function (it) { %>
+          <option value="<%= it.id %>" <%= String(row.item_id) === String(it.id) ? 'selected' : '' %>><%= it.title %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="note">Заметка</label>
+      <textarea class="form-control" id="note" name="note" rows="4"><%= row.note || '' %></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+    <a class="btn btn-link" href="/entries">Назад</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>

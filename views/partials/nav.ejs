@@ -1,0 +1,33 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+  <div class="container">
+    <a class="navbar-brand fw-semibold" href="/">App</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" href="/">Список</a></li>
+        <% if (userData) { %>
+          <li class="nav-item"><a class="nav-link" href="/entries">Мои записи</a></li>
+          <li class="nav-item"><a class="nav-link" href="/entries/new">Создать</a></li>
+        <% } %>
+        <% if (userData && userData.role === 'admin') { %>
+          <li class="nav-item"><a class="nav-link" href="/admin">Админ</a></li>
+        <% } %>
+      </ul>
+      <ul class="navbar-nav">
+        <% if (!userData) { %>
+          <li class="nav-item"><a class="nav-link" href="/auth/login">Вход</a></li>
+          <li class="nav-item"><a class="nav-link" href="/auth/register">Регистрация</a></li>
+        <% } else { %>
+          <li class="navbar-text text-white-50 me-2 small"><%= userData.fullName %></li>
+          <li class="nav-item">
+            <form action="/auth/logout" method="post" class="d-inline">
+              <button type="submit" class="btn btn-outline-light btn-sm">Выход</button>
+            </form>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+  </div>
+</nav>
