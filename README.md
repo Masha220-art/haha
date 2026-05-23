@@ -79,18 +79,6 @@ cd c:\Users\atarax\Desktop\haha
 npm run offline:prepare
 ```
 
-4. Скопируй на флешку **без** `node_modules`, **но с**:
-   - `src/`, `views/`, `public/`, `sql/`
-   - `package.json`, `package-lock.json`
-   - папка **`npm-offline-cache/`**
-
-На **другом** компе:
-
-1. Установи **Node.js** (18+) и **PostgreSQL** — их npm не ставит.
-2. Распакуй проект, создай `.env`.
-3. Установи пакеты из кэша:
-
-```powershell
 npm run offline:install
 npm run db:reset
 npm run db:seed
