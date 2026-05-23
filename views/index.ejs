@@ -2,24 +2,24 @@
 <%- include('partials/nav') %>
 <main class="container flex-grow-1">
   <div class="p-4 p-md-5 mb-4 rounded-3 hero-banner text-white">
-    <h1 class="display-6">Главная</h1>
-    <p class="lead mb-0">Универсальный каркас: список, записи, админ.</p>
+    <h1 class="display-6">Портал обучения</h1>
+    <p class="lead mb-0">Шаблон: курсы, заявки, админ-панель.</p>
   </div>
-  <h2 class="h5 mb-3">Элементы</h2>
+  <h2 class="h5 mb-3">Курсы</h2>
   <% if (listErr) { %>
     <div class="alert alert-danger"><%= listErr %></div>
-  <% } else if (!itemList.length) { %>
-    <p class="text-muted">В таблице <code>items</code> нет строк. В терминале: <code>npm run db:seed</code> — в конце должно быть <code>items в базе: 3</code>. Затем обновите страницу.</p>
+  <% } else if (!courseList.length) { %>
+    <p class="text-muted">В таблице courses нет строк. Выполните <code>npm run db:seed</code>.</p>
   <% } else { %>
     <div class="row g-3">
-      <% itemList.forEach(function (it) { %>
+      <% courseList.forEach(function (c) { %>
         <div class="col-md-6">
           <div class="card h-100 shadow-sm">
             <div class="card-body">
-              <h3 class="h6 card-title"><%= it.title %></h3>
-              <p class="card-text small text-muted"><%= it.description || '' %></p>
+              <h3 class="h6 card-title"><%= c.title %></h3>
+              <p class="card-text small text-muted"><%= c.description || '' %></p>
               <% if (userData) { %>
-                <a class="btn btn-primary btn-sm" href="/entries/new">Создать запись</a>
+                <a class="btn btn-primary btn-sm" href="/applications/new">Подать заявку</a>
               <% } else { %>
                 <a class="btn btn-outline-primary btn-sm" href="/auth/register">Регистрация</a>
               <% } %>

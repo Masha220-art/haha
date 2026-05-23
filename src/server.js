@@ -7,7 +7,7 @@ const { pool } = require('./db/pool');
 
 const indexRoutes = require('./routes/index');
 const authRoutes = require('./routes/auth');
-const entriesRoutes = require('./routes/entries');
+const applicationsRoutes = require('./routes/applications');
 const adminRoutes = require('./routes/admin');
 
 const app = express();
@@ -42,6 +42,7 @@ app.use((req, res, next) => {
   res.locals.userData = req.session.userId
     ? {
         id: req.session.userId,
+        login: req.session.login,
         email: req.session.email,
         fullName: req.session.fullName,
         role: req.session.role,
@@ -52,7 +53,7 @@ app.use((req, res, next) => {
 
 app.use('/', indexRoutes);
 app.use('/auth', authRoutes);
-app.use('/entries', entriesRoutes);
+app.use('/applications', applicationsRoutes);
 app.use('/admin', adminRoutes);
 
 app.use((req, res) => {

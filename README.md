@@ -33,7 +33,9 @@ npm start
 | admin | admin@example.com | Admin123!  |
 | user  | user@example.com  | User12345  |
 
-## Git
+1. Установи **Node.js** (18+) и **PostgreSQL** — их npm не ставит.
+2. Распакуй проект, создай `.env`.
+3. Установи пакеты из кэша:
 
 ```bash
 git add .

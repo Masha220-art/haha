@@ -1,23 +1,39 @@
 <%- include('../partials/head') %>
 <%- include('../partials/nav') %>
-<main class="container flex-grow-1" style="max-width: 420px;">
+<main class="container flex-grow-1" style="max-width: 480px;">
   <h1 class="h4 mb-3">Регистрация</h1>
-  <% if (err) { %><div class="alert alert-danger"><%= err %></div><% } %>
-  <form method="post" action="/auth/register">
+  <% if (fieldErrors._form) { %><div class="alert alert-danger"><%= fieldErrors._form %></div><% } %>
+  <form method="post" action="/auth/register" novalidate>
     <div class="mb-3">
-      <label class="form-label" for="full_name">Имя</label>
-      <input class="form-control" id="full_name" name="full_name" required value="<%= register1.full_name || '' %>">
-    </div>
-    <div class="mb-3">
-      <label class="form-label" for="email">Email</label>
-      <input class="form-control" type="email" id="email" name="email" required value="<%= register1.email || '' %>">
+      <label class="form-label" for="login">Логин</label>
+      <input class="form-control <%= fieldErrors.login ? 'is-invalid' : '' %>" id="login" name="login" required
+             pattern="[A-Za-z0-9]{6,}" title="Латиница и цифры, не менее 6 символов"
+             value="<%= form.login || '' %>">
+      <% if (fieldErrors.login) { %><div class="invalid-feedback d-block"><%= fieldErrors.login %></div><% } %>
     </div>
     <div class="mb-3">
       <label class="form-label" for="password">Пароль</label>
-      <input class="form-control" type="password" id="password" name="password" required minlength="6">
+      <input class="form-control <%= fieldErrors.password ? 'is-invalid' : '' %>" type="password" id="password" name="password" required minlength="8">
+      <% if (fieldErrors.password) { %><div class="invalid-feedback d-block"><%= fieldErrors.password %></div><% } %>
     </div>
-    <button type="submit" class="btn btn-primary w-100">Создать</button>
+    <div class="mb-3">
+      <label class="form-label" for="full_name">ФИО</label>
+      <input class="form-control <%= fieldErrors.full_name ? 'is-invalid' : '' %>" id="full_name" name="full_name" required value="<%= form.full_name || '' %>">
+      <% if (fieldErrors.full_name) { %><div class="invalid-feedback d-block"><%= fieldErrors.full_name %></div><% } %>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="phone">Телефон</label>
+      <input class="form-control <%= fieldErrors.phone ? 'is-invalid' : '' %>" id="phone" name="phone" required
+             placeholder="8(912)345-67-89" value="<%= form.phone || '' %>">
+      <% if (fieldErrors.phone) { %><div class="invalid-feedback d-block"><%= fieldErrors.phone %></div><% } %>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="email">Email</label>
+      <input class="form-control <%= fieldErrors.email ? 'is-invalid' : '' %>" type="email" id="email" name="email" required value="<%= form.email || '' %>">
+      <% if (fieldErrors.email) { %><div class="invalid-feedback d-block"><%= fieldErrors.email %></div><% } %>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Создать пользователя</button>
   </form>
-  <p class="small text-muted mt-3"><a href="/auth/login">Вход</a></p>
+  <p class="small text-muted mt-3">Уже зарегистрированы? <a href="/auth/login">Вход</a></p>
 </main>
 <%- include('../partials/footer') %>

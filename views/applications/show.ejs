@@ -1,0 +1,42 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<main class="container flex-grow-1">
+  <h1 class="h4 mb-3">Заявка №<%= row.id %></h1>
+  <dl class="row">
+    <dt class="col-sm-4">Курс</dt><dd class="col-sm-8"><%= row.course_title %></dd>
+    <dt class="col-sm-4">Дата начала</dt><dd class="col-sm-8"><%= formatDateRu(row.start_date) %></dd>
+    <dt class="col-sm-4">Оплата</dt><dd class="col-sm-8"><%= PAYMENT_METHOD[row.payment_method] || row.payment_method %></dd>
+    <dt class="col-sm-4">Статус</dt><dd class="col-sm-8"><%= APPLICATION_STATUS[row.status] || row.status %></dd>
+    <dt class="col-sm-4">Создана</dt><dd class="col-sm-8"><%= new Date(row.created_at).toLocaleString('ru-RU') %></dd>
+  </dl>
+  <a class="btn btn-link btn-sm" href="/applications">К списку</a>
+
+  <hr class="my-4">
+  <h2 class="h5">Отзыв</h2>
+  <% if (reviewRow) { %>
+    <p class="mb-1"><strong><%= reviewRow.rating %>/5</strong></p>
+    <p class="small text-muted"><%= reviewRow.moderation_status === 'published' ? 'Опубликован' : (reviewRow.moderation_status === 'pending' ? 'На модерации' : 'Отклонён') %></p>
+    <p><%= reviewRow.body %></p>
+  <% } else if (row.status === 'completed') { %>
+    <% if (fieldErrors._form) { %><div class="alert alert-danger"><%= fieldErrors._form %></div><% } %>
+    <form method="post" action="/applications/<%= row.id %>/reviews" class="mt-2" style="max-width: 480px;">
+      <div class="mb-2">
+        <label class="form-label" for="rating">Оценка</label>
+        <select class="form-select <%= fieldErrors.rating ? 'is-invalid' : '' %>" id="rating" name="rating" required>
+          <option value="">—</option>
+          <% for (let i = 5; i >= 1; i--) { %><option value="<%= i %>"><%= i %></option><% } %>
+        </select>
+        <% if (fieldErrors.rating) { %><div class="invalid-feedback d-block"><%= fieldErrors.rating %></div><% } %>
+      </div>
+      <div class="mb-2">
+        <label class="form-label" for="body">Текст отзыва</label>
+        <textarea class="form-control <%= fieldErrors.body ? 'is-invalid' : '' %>" id="body" name="body" rows="3" required></textarea>
+        <% if (fieldErrors.body) { %><div class="invalid-feedback d-block"><%= fieldErrors.body %></div><% } %>
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Отправить отзыв</button>
+    </form>
+  <% } else { %>
+    <p class="text-muted small">Отзыв можно оставить после завершения обучения.</p>
+  <% } %>
+</main>
+<%- include('../partials/footer') %>

@@ -1,0 +1,45 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<main class="container flex-grow-1">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Мои заявки</h1>
+    <a class="btn btn-primary btn-sm" href="/applications/new">Новая заявка</a>
+  </div>
+  <% if (!applicationList.length) { %>
+    <p class="text-muted">Заявок пока нет.</p>
+  <% } else { %>
+    <div class="table-responsive">
+      <table class="table table-striped align-middle">
+        <thead>
+          <tr>
+            <th>№</th>
+            <th>Курс</th>
+            <th>Дата начала</th>
+            <th>Статус</th>
+            <th>Отзыв</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% applicationList.forEach(function (r) { %>
+            <tr>
+              <td><%= r.id %></td>
+              <td><%= r.course_title %></td>
+              <td><%= new Date(r.start_date).toLocaleDateString('ru-RU') %></td>
+              <td><span class="badge text-bg-secondary"><%= APPLICATION_STATUS[r.status] || r.status %></span></td>
+              <td class="small">
+                <% if (r.review_id) { %>
+                  <% if (r.review_mod === 'published') { %>Опубликован<% } %>
+                  <% if (r.review_mod === 'pending') { %>На модерации<% } %>
+                  <% if (r.review_mod === 'rejected') { %>Отклонён<% } %>
+                <% } else if (r.status === 'completed') { %>Можно оставить<% } else { %>—<% } %>
+              </td>
+              <td><a class="btn btn-outline-secondary btn-sm" href="/applications/<%= r.id %>">Открыть</a></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</main>
+<%- include('../partials/footer') %>

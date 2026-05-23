@@ -1,0 +1,11 @@
+-- Пересоздание схемы (старые таблицы шаблона + новые)
+DROP TABLE IF EXISTS reviews CASCADE;
+DROP TABLE IF EXISTS ratings CASCADE;
+DROP TABLE IF EXISTS applications CASCADE;
+DROP TABLE IF EXISTS entries CASCADE;
+DROP TABLE IF EXISTS courses CASCADE;
+DROP TABLE IF EXISTS items CASCADE;
+DROP TABLE IF EXISTS "session" CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
+DROP FUNCTION IF EXISTS set_applications_updated_at() CASCADE;
+DROP FUNCTION IF EXISTS set_entries_updated_at() CASCADE;

@@ -2,41 +2,46 @@ require('dotenv').config();
 const bcrypt = require('bcrypt');
 const { pool } = require('./db/pool');
 
+const COURSES = [
+  ['Основы алгоритмизации и программирования', 'Демо-курс 1'],
+  ['Основы веб-дизайна', 'Демо-курс 2'],
+  ['Основы проектирования баз данных', 'Демо-курс 3'],
+];
+
 async function seed() {
-  const h1 = await bcrypt.hash('Admin123!', 10);
-  const h2 = await bcrypt.hash('User12345', 10);
+  const adminHash = await bcrypt.hash('KorokNET', 10);
+  const userHash = await bcrypt.hash('User12345', 10);
 
   await pool.query(
-    `INSERT INTO users (email, password_hash, full_name, role)
-     VALUES ($1, $2, $3, 'admin')
-     ON CONFLICT (email) DO NOTHING`,
-    ['admin@example.com', h1, 'Пользователь A']
+    `INSERT INTO users (login, email, password_hash, full_name, phone, role)
+     VALUES ($1, $2, $3, $4, $5, 'admin')
+     ON CONFLICT (login) DO NOTHING`,
+    ['Admin', 'admin@example.com', adminHash, 'Администратор Системы', '8(999)000-00-00']
   );
 
   await pool.query(
-    `INSERT INTO users (email, password_hash, full_name, role)
-     VALUES ($1, $2, $3, 'user')
-     ON CONFLICT (email) DO NOTHING`,
-    ['user@example.com', h2, 'Пользователь B']
+    `INSERT INTO users (login, email, password_hash, full_name, phone, role)
+     VALUES ($1, $2, $3, $4, $5, 'user')
+     ON CONFLICT (login) DO NOTHING`,
+    ['student01', 'user@example.com', userHash, 'Иванов Иван Иванович', '8(912)345-67-89']
   );
 
-  const c0 = await pool.query('SELECT COUNT(*)::int AS n FROM items');
+  const c0 = await pool.query('SELECT COUNT(*)::int AS n FROM courses');
   if (c0.rows[0].n === 0) {
-    await pool.query(
-      `INSERT INTO items (title, description) VALUES
-        ('Позиция 1', 'Описание 1'),
-        ('Позиция 2', 'Описание 2'),
-        ('Позиция 3', 'Описание 3')`
-    );
-    console.log('items: добавлены 3 демо-строки');
+    for (const [title, description] of COURSES) {
+      await pool.query('INSERT INTO courses (title, description) VALUES ($1, $2)', [
+        title,
+        description,
+      ]);
+    }
+    console.log('courses: добавлены 3 демо-курса');
   } else {
-    console.log('items: уже есть строки (', c0.rows[0].n, '), демо не добавлял');
+    console.log('courses: уже есть строки (', c0.rows[0].n, ')');
   }
 
-  const cnt = await pool.query('SELECT COUNT(*)::int AS n FROM items');
-  const n = cnt.rows[0].n;
-  console.log('seed ok: admin@example.com / Admin123!, user@example.com / User12345');
-  console.log('items в базе:', n);
+  console.log('seed ok:');
+  console.log('  админ — логин Admin, пароль KorokNET');
+  console.log('  пользователь — логин student01, пароль User12345');
   await pool.end();
 }
 

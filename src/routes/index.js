@@ -4,25 +4,25 @@ const { pool } = require('../db/pool');
 const router = express.Router();
 
 router.get('/', async (req, res) => {
-  let itemList = [];
+  let courseList = [];
   let listErr = null;
   try {
     const q = await pool.query(
-      'SELECT id, title, description FROM items ORDER BY id ASC'
+      'SELECT id, title, description FROM courses ORDER BY id ASC'
     );
-    itemList = q.rows;
+    courseList = q.rows;
   } catch (e) {
     console.error(e);
     if (e.code === '42P01') {
       listErr =
-        'В базе нет таблицы items. Откройте sql/schema.sql в pgAdmin (или psql), выполните скрипт целиком в вашей БД, затем снова npm run db:seed.';
+        'В базе нет таблицы courses. Выполните sql/schema.sql в вашей БД, затем npm run db:seed.';
     } else {
       listErr = e.message || String(e);
     }
   }
   res.render('index', {
     title: 'Главная',
-    itemList,
+    courseList,
     listErr,
   });
 });

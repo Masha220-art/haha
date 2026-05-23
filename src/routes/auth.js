@@ -1,54 +1,65 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { pool } = require('../db/pool');
+const { validateRegister, validateLoginForm } = require('../lib/validation');
 
 const router = express.Router();
 
+function setSession(req, userRow) {
+  req.session.userId = userRow.id;
+  req.session.login = userRow.login;
+  req.session.email = userRow.email;
+  req.session.fullName = userRow.full_name;
+  req.session.role = userRow.role;
+}
+
 router.get('/register', (req, res) => {
   if (req.session.userId) return res.redirect('/');
-  res.render('auth/register', { title: 'Регистрация', err: null, register1: {} });
+  res.render('auth/register', {
+    title: 'Регистрация',
+    fieldErrors: {},
+    form: {},
+  });
 });
 
 router.post('/register', async (req, res) => {
-  const { email, password, full_name } = req.body;
-  const register1 = { email: email || '', full_name: full_name || '' };
+  const check = validateRegister(req.body);
 
-  if (!email || !password || !full_name) {
+  if (!check.valid) {
     return res.status(400).render('auth/register', {
       title: 'Регистрация',
-      err: 'Заполните поля.',
-      register1,
+      fieldErrors: check.fieldErrors,
+      form: check.values,
     });
   }
 
   try {
-    const hash = await bcrypt.hash(password, 10);
+    const hash = await bcrypt.hash(req.body.password, 10);
     const q = await pool.query(
-      `INSERT INTO users (email, password_hash, full_name, role)
-       VALUES ($1, $2, $3, 'user')
-       RETURNING id, email, full_name, role`,
-      [email.trim().toLowerCase(), hash, full_name.trim()]
+      `INSERT INTO users (login, email, password_hash, full_name, phone, role)
+       VALUES ($1, $2, $3, $4, $5, 'user')
+       RETURNING id, login, email, full_name, role`,
+      [check.values.login, check.values.email, hash, check.values.full_name, check.values.phone]
     );
-    const userRow = q.rows[0];
-    req.session.userId = userRow.id;
-    req.session.email = userRow.email;
-    req.session.fullName = userRow.full_name;
-    req.session.role = userRow.role;
-    const nextUrl = req.query.next || '/';
-    res.redirect(nextUrl === '/auth/login' ? '/' : nextUrl);
+    setSession(req, q.rows[0]);
+    res.redirect('/');
   } catch (e) {
+    const fieldErrors = {};
+    const form = check.values;
     if (e.code === '23505') {
-      return res.status(400).render('auth/register', {
-        title: 'Регистрация',
-        err: 'Email уже занят.',
-        register1,
-      });
+      if (e.constraint && e.constraint.includes('login')) {
+        fieldErrors.login = 'Логин уже занят.';
+      } else {
+        fieldErrors.email = 'Email уже занят.';
+      }
+    } else {
+      console.error(e);
+      fieldErrors._form = 'Ошибка сервера.';
     }
-    console.error(e);
-    res.status(500).render('auth/register', {
+    return res.status(400).render('auth/register', {
       title: 'Регистрация',
-      err: 'Ошибка сервера.',
-      register1,
+      fieldErrors,
+      form,
     });
   }
 });
@@ -57,53 +68,49 @@ router.get('/login', (req, res) => {
   if (req.session.userId) return res.redirect('/');
   res.render('auth/login', {
     title: 'Вход',
-    err: null,
-    loginForm: {},
+    fieldErrors: {},
+    form: {},
     next: typeof req.query.next === 'string' ? req.query.next : '',
   });
 });
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const loginForm = { email: email || '' };
+  const check = validateLoginForm(req.body);
+  const nextRaw = (req.body.next || '').toString();
+  const nextUrl = nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : '/';
 
-  if (!email || !password) {
+  if (!check.valid) {
     return res.status(400).render('auth/login', {
       title: 'Вход',
-      err: 'Введите email и пароль.',
-      loginForm,
-      next: (req.body.next || '').toString(),
+      fieldErrors: check.fieldErrors,
+      form: check.values,
+      next: nextRaw,
     });
   }
 
   try {
     const q = await pool.query(
-      'SELECT id, email, password_hash, full_name, role FROM users WHERE email = $1',
-      [email.trim().toLowerCase()]
+      'SELECT id, login, email, password_hash, full_name, role FROM users WHERE login = $1',
+      [check.values.login]
     );
     const userRow = q.rows[0];
-    if (!userRow || !(await bcrypt.compare(password, userRow.password_hash))) {
+    if (!userRow || !(await bcrypt.compare(req.body.password, userRow.password_hash))) {
       return res.status(400).render('auth/login', {
         title: 'Вход',
-        err: 'Неверные данные.',
-        loginForm,
-        next: (req.body.next || '').toString(),
+        fieldErrors: { login: 'Неверный логин или пароль.' },
+        form: check.values,
+        next: nextRaw,
       });
     }
-    req.session.userId = userRow.id;
-    req.session.email = userRow.email;
-    req.session.fullName = userRow.full_name;
-    req.session.role = userRow.role;
-    const nextRaw = (req.body.next || req.query.next || '/').toString();
-    const nextUrl = nextRaw.startsWith('/') && !nextRaw.startsWith('//') ? nextRaw : '/';
+    setSession(req, userRow);
     res.redirect(nextUrl);
   } catch (e) {
     console.error(e);
     res.status(500).render('auth/login', {
       title: 'Вход',
-      err: 'Ошибка сервера.',
-      loginForm,
-      next: (req.body.next || '').toString(),
+      fieldErrors: { _form: 'Ошибка сервера.' },
+      form: check.values,
+      next: nextRaw,
     });
   }
 });

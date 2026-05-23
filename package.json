@@ -1,12 +1,15 @@
 {
   "name": "web-app-template",
   "version": "1.0.0",
-  "description": "Express + EJS + PostgreSQL (auth, CRUD entries, admin)",
+  "description": "Express + EJS + PostgreSQL (auth, applications, admin)",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "db:seed": "node src/seed.js"
+    "db:reset": "node src/db-reset.js",
+    "db:seed": "node src/seed.js",
+    "offline:prepare": "npm ci --cache ./npm-offline-cache",
+    "offline:install": "npm ci --cache ./npm-offline-cache --offline"
   },
   "engines": {
     "node": ">=18"

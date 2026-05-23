@@ -2,19 +2,21 @@
 <%- include('../partials/nav') %>
 <main class="container flex-grow-1" style="max-width: 420px;">
   <h1 class="h4 mb-3">Вход</h1>
-  <% if (err) { %><div class="alert alert-danger"><%= err %></div><% } %>
+  <% if (fieldErrors._form) { %><div class="alert alert-danger"><%= fieldErrors._form %></div><% } %>
   <form method="post" action="/auth/login">
     <% if (next) { %><input type="hidden" name="next" value="<%= next %>"><% } %>
     <div class="mb-3">
-      <label class="form-label" for="email">Email</label>
-      <input class="form-control" type="email" id="email" name="email" required value="<%= loginForm.email || '' %>">
+      <label class="form-label" for="login">Логин</label>
+      <input class="form-control <%= fieldErrors.login ? 'is-invalid' : '' %>" id="login" name="login" required value="<%= form.login || '' %>">
+      <% if (fieldErrors.login) { %><div class="invalid-feedback d-block"><%= fieldErrors.login %></div><% } %>
     </div>
     <div class="mb-3">
       <label class="form-label" for="password">Пароль</label>
-      <input class="form-control" type="password" id="password" name="password" required>
+      <input class="form-control <%= fieldErrors.password ? 'is-invalid' : '' %>" type="password" id="password" name="password" required>
+      <% if (fieldErrors.password) { %><div class="invalid-feedback d-block"><%= fieldErrors.password %></div><% } %>
     </div>
     <button type="submit" class="btn btn-primary w-100">Войти</button>
   </form>
-  <p class="small text-muted mt-3"><a href="/auth/register">Регистрация</a></p>
+  <p class="small text-muted mt-3">Ещё не зарегистрированы? <a href="/auth/register">Регистрация</a></p>
 </main>
 <%- include('../partials/footer') %>

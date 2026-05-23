@@ -1,87 +1,94 @@
 const express = require('express');
 const { pool } = require('../db/pool');
 const { requireAdmin } = require('../middleware/auth');
+const { APPLICATION_STATUS, PAYMENT_METHOD, REVIEW_STATUS, formatDateRu } = require('../lib/labels');
 
 const router = express.Router();
 router.use(requireAdmin);
 
+const STATUS_KEYS = ['new', 'in_progress', 'completed'];
+
 router.get('/', (req, res) => {
-  res.render('admin/dashboard', { title: 'Админ' });
+  res.render('admin/dashboard', { title: 'Панель администратора' });
 });
 
-router.get('/entries', async (req, res) => {
+router.get('/applications', async (req, res) => {
   const st = req.query.status;
   let sql = `
-    SELECT e.*, i.title AS item_title, u.email AS user_email, u.full_name AS user_name
-    FROM entries e
-    JOIN items i ON i.id = e.item_id
-    JOIN users u ON u.id = e.user_id
-    ORDER BY e.created_at DESC
+    SELECT a.*, c.title AS course_title, u.login AS user_login, u.full_name AS user_name
+    FROM applications a
+    JOIN courses c ON c.id = a.course_id
+    JOIN users u ON u.id = a.user_id
+    ORDER BY a.created_at DESC
   `;
   const args = [];
-  if (st && ['pending', 'approved', 'rejected', 'cancelled'].includes(st)) {
+  if (st && STATUS_KEYS.includes(st)) {
     sql = `
-      SELECT e.*, i.title AS item_title, u.email AS user_email, u.full_name AS user_name
-      FROM entries e
-      JOIN items i ON i.id = e.item_id
-      JOIN users u ON u.id = e.user_id
-      WHERE e.status = $1
-      ORDER BY e.created_at DESC
+      SELECT a.*, c.title AS course_title, u.login AS user_login, u.full_name AS user_name
+      FROM applications a
+      JOIN courses c ON c.id = a.course_id
+      JOIN users u ON u.id = a.user_id
+      WHERE a.status = $1
+      ORDER BY a.created_at DESC
     `;
     args.push(st);
   }
   const q = await pool.query(sql, args);
-  res.render('admin/entries', {
-    title: 'Все записи',
-    entryList: q.rows,
-    filter1: st || '',
+  res.render('admin/applications', {
+    title: 'Все заявки',
+    applicationList: q.rows,
+    filterStatus: st || '',
+    APPLICATION_STATUS,
+    PAYMENT_METHOD,
+    formatDateRu,
   });
 });
 
-router.post('/entries/:id/status', async (req, res) => {
+router.post('/applications/:id/status', async (req, res) => {
   const id1 = parseInt(req.params.id, 10);
   const { status } = req.body;
-  if (!['pending', 'approved', 'rejected', 'cancelled'].includes(status)) {
-    return res.redirect('/admin/entries');
+  if (!STATUS_KEYS.includes(status)) {
+    return res.redirect('/admin/applications');
   }
-  await pool.query('UPDATE entries SET status = $1 WHERE id = $2', [status, id1]);
-  res.redirect('/admin/entries');
+  await pool.query('UPDATE applications SET status = $1 WHERE id = $2', [status, id1]);
+  res.redirect('/admin/applications');
 });
 
-router.get('/ratings', async (req, res) => {
+router.get('/reviews', async (req, res) => {
   const filter1 = req.query.filter || 'pending';
-  let where = "rt.moderation_status = 'pending'";
+  let where = "rv.moderation_status = 'pending'";
   if (filter1 === 'all') where = 'TRUE';
-  if (filter1 === 'published') where = "rt.moderation_status = 'published'";
-  if (filter1 === 'rejected') where = "rt.moderation_status = 'rejected'";
+  if (filter1 === 'published') where = "rv.moderation_status = 'published'";
+  if (filter1 === 'rejected') where = "rv.moderation_status = 'rejected'";
 
   const q = await pool.query(
-    `SELECT rt.*, e.id AS entry_ref, i.title AS item_title,
-            u.email AS user_email, u.full_name AS user_name
-     FROM ratings rt
-     JOIN entries e ON e.id = rt.entry_id
-     JOIN items i ON i.id = e.item_id
-     JOIN users u ON u.id = rt.user_id
+    `SELECT rv.*, a.id AS application_ref, c.title AS course_title,
+            u.login AS user_login, u.full_name AS user_name
+     FROM reviews rv
+     JOIN applications a ON a.id = rv.application_id
+     JOIN courses c ON c.id = a.course_id
+     JOIN users u ON u.id = rv.user_id
      WHERE ${where}
-     ORDER BY rt.created_at DESC`
+     ORDER BY rv.created_at DESC`
   );
-  res.render('admin/ratings', {
-    title: 'Оценки',
-    ratingList: q.rows,
+  res.render('admin/reviews', {
+    title: 'Модерация отзывов',
+    reviewList: q.rows,
     filter1,
+    REVIEW_STATUS,
   });
 });
 
-router.post('/ratings/:id/moderate', async (req, res) => {
+router.post('/reviews/:id/moderate', async (req, res) => {
   const id1 = parseInt(req.params.id, 10);
   const { action } = req.body;
   let mod = 'pending';
   if (action === 'publish') mod = 'published';
   else if (action === 'reject') mod = 'rejected';
-  else return res.redirect('/admin/ratings');
+  else return res.redirect('/admin/reviews');
 
-  await pool.query('UPDATE ratings SET moderation_status = $1 WHERE id = $2', [mod, id1]);
-  res.redirect('/admin/ratings');
+  await pool.query('UPDATE reviews SET moderation_status = $1 WHERE id = $2', [mod, id1]);
+  res.redirect('/admin/reviews');
 });
 
 module.exports = router;

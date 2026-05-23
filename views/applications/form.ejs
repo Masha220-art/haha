@@ -1,0 +1,38 @@
+<%- include('../partials/head') %>
+<%- include('../partials/nav') %>
+<main class="container flex-grow-1" style="max-width: 640px;">
+  <h1 class="h4 mb-3">Новая заявка</h1>
+  <% if (fieldErrors._form) { %><div class="alert alert-danger"><%= fieldErrors._form %></div><% } %>
+  <form method="post" action="/applications/new" novalidate>
+    <div class="mb-3">
+      <label class="form-label" for="course_id">Курс</label>
+      <select class="form-select <%= fieldErrors.course_id ? 'is-invalid' : '' %>" id="course_id" name="course_id" required>
+        <option value="">— выберите курс —</option>
+        <% courseList.forEach(function (c) { %>
+          <option value="<%= c.id %>" <%= String(form.course_id) === String(c.id) ? 'selected' : '' %>><%= c.title %></option>
+        <% }); %>
+      </select>
+      <% if (fieldErrors.course_id) { %><div class="invalid-feedback d-block"><%= fieldErrors.course_id %></div><% } %>
+    </div>
+    <div class="mb-3">
+      <label class="form-label" for="start_date">Дата начала обучения</label>
+      <input class="form-control <%= fieldErrors.start_date ? 'is-invalid' : '' %>" id="start_date" name="start_date"
+             placeholder="ДД.ММ.ГГГГ" required value="<%= form.start_date || '' %>">
+      <% if (fieldErrors.start_date) { %><div class="invalid-feedback d-block"><%= fieldErrors.start_date %></div><% } %>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Способ оплаты</label>
+      <% Object.keys(PAYMENT_METHOD).forEach(function (key) { %>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="payment_method" id="pay_<%= key %>" value="<%= key %>"
+                 <%= form.payment_method === key ? 'checked' : '' %> required>
+          <label class="form-check-label" for="pay_<%= key %>"><%= PAYMENT_METHOD[key] %></label>
+        </div>
+      <% }); %>
+      <% if (fieldErrors.payment_method) { %><div class="invalid-feedback d-block"><%= fieldErrors.payment_method %></div><% } %>
+    </div>
+    <button type="submit" class="btn btn-primary">Отправить</button>
+    <a class="btn btn-link" href="/applications">Назад</a>
+  </form>
+</main>
+<%- include('../partials/footer') %>
